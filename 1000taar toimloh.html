@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3-р анги: Тоог мянгатаар тоймлох ба Ахуйн тооцоо</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Comfortaa:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Comfortaa', cursive, sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            min-height: 100vh;
+        }
+        .heading-font {
+            font-family: 'Fredoka', cursive, sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+        }
+        .bouncy {
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .bouncy:hover {
+            transform: scale(1.04);
+        }
+        .bouncy:active {
+            transform: scale(0.96);
+        }
+        /* Custom slider */
+        input[type=range] {
+            accent-color: #4f46e5;
+        }
+        /* Pulse animation for key digits */
+        .digit-highlight {
+            animation: pulse-border 1.5s infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { transform: scale(1); color: #dc2626; }
+            50% { transform: scale(1.15); color: #ea580c; }
+        }
+        /* Confetti Canvas */
+        #confettiCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 99;
+        }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col justify-between min-h-screen">
+
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- Header Navigation Bar -->
+    <header class="bg-indigo-600 text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-amber-400 text-indigo-900 p-2.5 rounded-2xl shadow-md text-2xl font-black">
+                    <i class="fa-solid fa-calculator"></i>
+                </div>
+                <div>
+                    <h1 class="heading-font text-xl md:text-2xl font-bold tracking-wide">Мянгатын Мастер</h1>
+                    <p class="text-xs text-indigo-200">3-р анги: Тоог мянгатаар тоймлох ба ахуйн тооцоо</p>
+                </div>
+            </div>
+
+            <!-- Stats & Sound toggle -->
+            <div class="flex items-center space-x-3">
+                <div class="flex items-center bg-indigo-700/80 px-3 py-1.5 rounded-xl border border-indigo-500">
+                    <i class="fa-solid fa-star text-amber-300 mr-1.5 text-lg"></i>
+                    <span id="globalStars" class="font-bold text-lg">0</span>
+                </div>
+                <div class="flex items-center bg-indigo-700/80 px-3 py-1.5 rounded-xl border border-indigo-500">
+                    <i class="fa-solid fa-fire text-orange-400 mr-1.5 text-lg"></i>
+                    <span id="streakCount" class="font-bold text-lg">0</span>
+                </div>
+                <button id="soundBtn" onclick="toggleSound()" class="bg-indigo-500 hover:bg-indigo-400 p-2 rounded-xl transition text-white">
+                    <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="bg-indigo-700/50 border-t border-indigo-500/40 px-4">
+            <div class="max-w-6xl mx-auto flex overflow-x-auto space-x-2 py-2 no-scrollbar">
+                <button onclick="switchTab('learn')" id="tab-learn" class="nav-tab px-4 py-2 rounded-xl text-sm font-bold flex items-center space-x-2 bg-white text-indigo-700 shadow-md transition">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>1. Ойлгоё (Дүрэм)</span>
+                </button>
+                <button onclick="switchTab('practice')" id="tab-practice" class="nav-tab px-4 py-2 rounded-xl text-sm font-bold flex items-center space-x-2 hover:bg-indigo-600/60 transition">
+                    <i class="fa-solid fa-bullseye"></i>
+                    <span>2. Дадлага тоглоом</span>
+                </button>
+                <button onclick="switchTab('store')" id="tab-store" class="nav-tab px-4 py-2 rounded-xl text-sm font-bold flex items-center space-x-2 hover:bg-indigo-600/60 transition">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span>3. Ахуйн тооцоо</span>
+                </button>
+                <button onclick="switchTab('achievements')" id="tab-achievements" class="nav-tab px-4 py-2 rounded-xl text-sm font-bold flex items-center space-x-2 hover:bg-indigo-600/60 transition">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span>4. Шагнал & Амжилт</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <!-- TAB 1: LEARN & VISUAL NUMBER LINE -->
+        <section id="sec-learn" class="tab-content block space-y-6">
+            <!-- Theory Banner -->
+            <div class="glass-card rounded-3xl p-6 shadow-xl border-l-8 border-l-indigo-600">
+                <h2 class="heading-font text-2xl font-bold text-indigo-900 mb-3 flex items-center">
+                    <i class="fa-solid fa-lightbulb text-amber-500 mr-3"></i>
+                    Тоог мянгатаар хэрхэн тоймлох вэ?
+                </h2>
+                <p class="text-slate-700 leading-relaxed text-base md:text-lg mb-4">
+                    Тоог мянгатаар тоймлохын тулд <span class="font-bold text-red-600 underline decoration-2">ЗУУТЫН ОРОН</span> (arxaд сүүлээсээ 3 дахь цирк)-ыг ажиглана!
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-start space-x-3">
+                        <div class="bg-emerald-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold shrink-0">1</div>
+                        <div>
+                            <h3 class="font-bold text-emerald-900 text-lg">Зуутын орон нь 0, 1, 2, 3, 4 байвал:</h3>
+                            <p class="text-sm text-emerald-800 mt-1">
+                                <span class="font-bold text-emerald-700">БАГА мянгат</span> руу тоймлоно (Мянгатын орон хэвээр үлдэнэ, бусад орон 0 болно).
+                            </p>
+                            <div class="mt-2 text-xs bg-emerald-100/80 px-2 py-1 rounded font-mono text-emerald-900">
+                                Жишээ: 3,<b>2</b>40 ➔ 3,000
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start space-x-3">
+                        <div class="bg-amber-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold shrink-0">2</div>
+                        <div>
+                            <h3 class="font-bold text-amber-900 text-lg">Зуутын орон нь 5, 6, 7, 8, 9 байвал:</h3>
+                            <p class="text-sm text-amber-800 mt-1">
+                                <span class="font-bold text-amber-700">ИХ мянгат</span> руу тоймлоно (Мянгатын орон 1-ээр нэмэгдэж, бусад орон 0 болно).
+                            </p>
+                            <div class="mt-2 text-xs bg-amber-100/80 px-2 py-1 rounded font-mono text-amber-900">
+                                Жишээ: 3,<b>7</b>80 ➔ 4,000
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Visual Number Line Simulator -->
+            <div class="glass-card rounded-3xl p-6 shadow-xl space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-200 pb-4">
+                    <div>
+                        <h3 class="heading-font text-xl font-bold text-slate-800">
+                            <i class="fa-solid fa-sliders text-indigo-600 mr-2"></i>Интерактив Тоон Шугам
+                        </h3>
+                        <p class="text-xs text-slate-500">Гулсуурыг хөдөлгөж эсвэл тоо оруулж бөмбөлөг хаашаа өнхрөхийг хараарай!</p>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <label for="customNumInput" class="text-sm font-bold text-slate-700">Тоо оруулах:</label>
+                        <input type="number" id="customNumInput" min="1000" max="9999" value="3420" 
+                               class="w-28 px-3 py-1.5 border-2 border-indigo-300 rounded-xl text-center font-bold text-indigo-900 focus:outline-none focus:border-indigo-600">
+                        <button onclick="setCustomNumber()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-3 py-1.5 rounded-xl bouncy">
+                            Харах
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Number Line Canvas / SVG Graphic Area -->
+                <div class="relative bg-slate-900 rounded-2xl p-6 text-white overflow-hidden shadow-inner min-h-[220px] flex flex-col justify-between">
+                    <!-- Dynamic Readout -->
+                    <div class="text-center">
+                        <div class="text-sm text-slate-400">Сонгосон тоо:</div>
+                        <div id="demoNumberDisplay" class="heading-font text-4xl md:text-5xl font-extrabold tracking-wider my-1 text-amber-300">
+                            3,420
+                        </div>
+                        <div id="demoExplanation" class="text-xs md:text-sm text-indigo-200">
+                            Зуутын орон нь <span class="text-red-400 font-bold">4</span> тул бага мянгат руу ойрхон байна.
+                        </div>
+                    </div>
+
+                    <!-- Visual Track & Rolling Ball -->
+                    <div class="relative my-8 px-8">
+                        <!-- Line track -->
+                        <div class="h-4 bg-slate-700 rounded-full w-full relative">
+                            <!-- Center midpoint mark -->
+                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-8 bg-amber-400/80 rounded" title="Дунд цэг (500)"></div>
+                        </div>
+
+                        <!-- Lower Thousand Marker -->
+                        <div class="absolute -bottom-8 left-4 text-center">
+                            <span id="lowerThousandLabel" class="font-bold text-emerald-400 text-sm md:text-base">3,000</span>
+                            <div class="text-[10px] text-slate-400">Бага мянгат</div>
+                        </div>
+
+                        <!-- Midpoint Marker -->
+                        <div class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-center">
+                            <span id="midThousandLabel" class="font-semibold text-amber-300 text-xs">3,500</span>
+                            <div class="text-[10px] text-slate-400">Дунд тал</div>
+                        </div>
+
+                        <!-- Upper Thousand Marker -->
+                        <div class="absolute -bottom-8 right-4 text-center">
+                            <span id="upperThousandLabel" class="font-bold text-indigo-400 text-sm md:text-base">4,000</span>
+                            <div class="text-[10px] text-slate-400">Их мянгат</div>
+                        </div>
+
+                        <!-- Animated Ball / Target Indicator -->
+                        <div id="ballIndicator" class="absolute -top-4 left-1/2 -translate-x-1/2 transition-all duration-500 ease-out flex flex-col items-center">
+                            <div class="w-8 h-8 bg-gradient-to-tr from-amber-500 to-yellow-300 rounded-full shadow-lg border-2 border-white flex items-center justify-center text-indigo-950 font-black text-xs">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Range Slider -->
+                    <div class="mt-6">
+                        <input type="range" id="learnSlider" min="3000" max="4000" step="10" value="3420" class="w-full h-3 bg-slate-700 rounded-lg cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Fast Rules Table -->
+                <div class="bg-indigo-50/80 rounded-2xl p-4 border border-indigo-100 flex flex-wrap justify-around text-center gap-4 text-xs md:text-sm">
+                    <div>
+                        <span class="text-slate-500">Тоо:</span> <strong class="text-indigo-900">1,200</strong> ➔ <span class="text-emerald-600 font-bold">1,000</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500">Тоо:</span> <strong class="text-indigo-900">4,850</strong> ➔ <span class="text-indigo-600 font-bold">5,000</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500">Тоо:</span> <strong class="text-indigo-900">7,500</strong> ➔ <span class="text-indigo-600 font-bold">8,000</span> (5 дээр байвал ИХ)
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- TAB 2: PRACTICE GAME -->
+        <section id="sec-practice" class="tab-content hidden space-y-6">
+            <div class="glass-card rounded-3xl p-6 shadow-xl relative overflow-hidden">
+                <!-- Level Header -->
+                <div class="flex justify-between items-center mb-6 border-b border-slate-200 pb-4">
+                    <div>
+                        <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full uppercase">Дадлага даалгавар</span>
+                        <h2 class="heading-font text-2xl font-bold text-slate-800 mt-1">Зөв мянгатыг сонгоорой!</h2>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-500">Зөв хариулсан</div>
+                        <div id="practiceScore" class="font-bold text-xl text-indigo-600">0 / 0</div>
+                    </div>
+                </div>
+
+                <!-- Game Card Container -->
+                <div class="max-w-xl mx-auto bg-gradient-to-b from-indigo-50 to-white border-2 border-indigo-200 rounded-3xl p-6 md:p-8 text-center shadow-lg space-y-6">
+                    <div class="text-sm font-semibold text-slate-500">
+                        Энэ тоог хамгийн ойр мянгатаар тоймлоорой:
+                    </div>
+
+                    <!-- Question Number Display -->
+                    <div id="questionNumber" class="heading-font text-5xl md:text-6xl font-black text-indigo-900 tracking-wider py-2">
+                        <!-- Example: 5,680 -->
+                    </div>
+
+                    <!-- Hint Box with Digit Highlight -->
+                    <div id="questionHint" class="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-xs md:text-sm text-amber-900 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-magnifying-glass text-amber-600"></i>
+                        <span>Анхаарах: Зуутын орон дээрх цифрийг хараарай!</span>
+                    </div>
+
+                    <!-- Options Buttons -->
+                    <div class="grid grid-cols-2 gap-4 pt-2" id="optionsContainer">
+                        <!-- Option buttons injected by JS -->
+                    </div>
+
+                    <!-- Feedback Banner -->
+                    <div id="practiceFeedback" class="min-h-[50px] flex items-center justify-center font-bold text-lg rounded-2xl p-2 transition">
+                        <!-- Dynamic message -->
+                    </div>
+
+                    <!-- Next Question Button -->
+                    <button id="nextQuestionBtn" onclick="nextQuestion()" class="hidden w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg bouncy text-lg transition">
+                        Дараагийн тоо <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- TAB 3: REAL-WORLD HOUSEHOLD BUDGETING (STORE MISSIONS) -->
+        <section id="sec-store" class="tab-content hidden space-y-6">
+            <div class="glass-card rounded-3xl p-6 shadow-xl">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-slate-200 pb-4">
+                    <div>
+                        <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase">Ахуйн Тооцоо</span>
+                        <h2 class="heading-font text-2xl font-bold text-slate-800 mt-1">Дэлгүүрийн Худалдан Авалт</h2>
+                        <p class="text-xs text-slate-500">Бараа тус бүрийн үнийг мянгатаар тоймлон, баримжаа нийт дүнг хурдан бодоорой!</p>
+                    </div>
+
+                    <!-- Scenario Selector -->
+                    <div class="flex space-x-2">
+                        <button onclick="loadScenario(0)" id="scenBtn-0" class="scen-tab px-3 py-1.5 text-xs font-bold rounded-xl bg-indigo-600 text-white shadow">
+                            1. Өдрийн Хүнс
+                        </button>
+                        <button onclick="loadScenario(1)" id="scenBtn-1" class="scen-tab px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-200 text-slate-700 hover:bg-slate-300">
+                            2. Сургуулийн Хэрэгсэл
+                        </button>
+                        <button onclick="loadScenario(2)" id="scenBtn-2" class="scen-tab px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-200 text-slate-700 hover:bg-slate-300">
+                            3. Гэр Бүл Амралт
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Scenario Content -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Shopping List Table (2 Columns on LG) -->
+                    <div class="lg:col-span-2 space-y-4">
+                        <div id="scenarioHeader" class="bg-indigo-900 text-white rounded-2xl p-4 shadow flex justify-between items-center">
+                            <div>
+                                <h3 id="scenTitle" class="heading-font text-lg font-bold">Ээжийн дэлгүүрийн жагсаалт</h3>
+                                <p id="scenDesc" class="text-xs text-indigo-200">Бараа бүрийн бодит үнийг хамгийн ойр мянгатаар тоймлоорой.</p>
+                            </div>
+                            <div class="bg-amber-400 text-indigo-950 px-3 py-1.5 rounded-xl font-bold text-sm flex items-center space-x-1">
+                                <span>Төсөв:</span>
+                                <span id="scenBudget" class="font-extrabold">20,000₮</span>
+                            </div>
+                        </div>
+
+                        <!-- Items List -->
+                        <div id="storeItemsContainer" class="space-y-3">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Summary & Verification Box -->
+                    <div class="bg-slate-50 border-2 border-slate-200 rounded-3xl p-5 flex flex-col justify-between shadow-md space-y-4">
+                        <div>
+                            <h4 class="heading-font font-bold text-slate-800 text-lg mb-3 flex items-center border-b border-slate-200 pb-2">
+                                <i class="fa-solid fa-receipt text-indigo-600 mr-2"></i>Тооцооны Нэгтгэл
+                            </h4>
+
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-200">
+                                    <span class="text-slate-600">Ойролцоо нийт дүн:</span>
+                                    <span id="calcRoundedSum" class="font-extrabold text-indigo-700 text-lg">0₮</span>
+                                </div>
+
+                                <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-200">
+                                    <span class="text-slate-600">Яг таг нийт дүн:</span>
+                                    <span id="calcExactSum" class="font-bold text-slate-500">0₮</span>
+                                </div>
+
+                                <!-- Difference evaluation -->
+                                <div id="differenceNote" class="text-xs p-2.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200">
+                                    <i class="fa-solid fa-circle-info mr-1"></i> Тоглоом: Бараа тус бүрийг тоймлон оруулна уу.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Budget Question & Submit -->
+                        <div class="pt-2 space-y-3 border-t border-slate-200">
+                            <label class="block text-xs font-bold text-slate-700">
+                                <i class="fa-solid fa-wallet text-emerald-600 mr-1"></i> Таны төсөв энэ худалдан авалтанд хүрэлцэх үү?
+                            </label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="selectBudgetAnswer(true)" id="btnBudgetYes" class="py-2 rounded-xl font-bold border-2 border-emerald-500 text-emerald-700 hover:bg-emerald-50 transition text-sm">
+                                    <i class="fa-solid fa-check mr-1"></i> Хүрнэ
+                                </button>
+                                <button onclick="selectBudgetAnswer(false)" id="btnBudgetNo" class="py-2 rounded-xl font-bold border-2 border-red-400 text-red-700 hover:bg-red-50 transition text-sm">
+                                    <i class="fa-solid fa-xmark mr-1"></i> Хүрэхгүй
+                                </button>
+                            </div>
+
+                            <button onclick="checkStoreScenario()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl shadow-lg bouncy transition text-center">
+                                Тооцоог шалгах <i class="fa-solid fa-check-circle ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- TAB 4: ACHIEVEMENTS & CERTIFICATE -->
+        <section id="sec-achievements" class="tab-content hidden space-y-6">
+            <div class="glass-card rounded-3xl p-6 shadow-xl text-center space-y-6">
+                <div>
+                    <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full uppercase">Миний Амжилт</span>
+                    <h2 class="heading-font text-3xl font-black text-indigo-900 mt-2">Мянгатын Баатар Батламж</h2>
+                    <p class="text-slate-500 text-sm">Тоглоом тоглож цуглуулсан тэмдэг ба амжилтаа эндээс харна уу!</p>
+                </div>
+
+                <!-- Stats summary grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+                    <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-center">
+                        <i class="fa-solid fa-star text-amber-400 text-3xl mb-1"></i>
+                        <div id="statStars" class="font-extrabold text-2xl text-indigo-900">0</div>
+                        <div class="text-xs text-slate-500">Нийт Од</div>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl text-center">
+                        <i class="fa-solid fa-circle-check text-emerald-500 text-3xl mb-1"></i>
+                        <div id="statCorrect" class="font-extrabold text-2xl text-emerald-900">0</div>
+                        <div class="text-xs text-slate-500">Зөв Тоймлосон</div>
+                    </div>
+                    <div class="bg-orange-50 border border-orange-100 p-4 rounded-2xl text-center">
+                        <i class="fa-solid fa-fire text-orange-500 text-3xl mb-1"></i>
+                        <div id="statStreak" class="font-extrabold text-2xl text-orange-900">0</div>
+                        <div class="text-xs text-slate-500">Хамгийн Их Цуврал</div>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-100 p-4 rounded-2xl text-center">
+                        <i class="fa-solid fa-bag-shopping text-purple-500 text-3xl mb-1"></i>
+                        <div id="statMissions" class="font-extrabold text-2xl text-purple-900">0 / 3</div>
+                        <div class="text-xs text-slate-500">Биелүүлсэн Мисс</div>
+                    </div>
+                </div>
+
+                <!-- Badges Grid -->
+                <div class="max-w-3xl mx-auto pt-4">
+                    <h3 class="heading-font text-xl font-bold text-slate-800 mb-4 text-left">
+                        <i class="fa-solid fa-award text-amber-500 mr-2"></i>Шагналын Тэмдэгтүүд
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="badgesContainer">
+                        <!-- Dynamic Badges -->
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex justify-center">
+                    <button onclick="resetAllProgress()" class="text-xs text-slate-400 hover:text-red-500 underline">
+                        Амжилтыг шинэчлэх (Дахин эхлэх)
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 text-center py-4 text-xs mt-8">
+        <p>3-р анги: Математикийн интерактив хичээл &copy; 2026 - Тоог мянгатаар тоймлох ба Ахуйн тооцоо</p>
+    </footer>
+
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        /* Global Application State */
+        let state = {
+            stars: 0,
+            streak: 0,
+            maxStreak: 0,
+            correctCount: 0,
+            soundEnabled: true,
+            // Practice game state
+            practice: {
+                currentNum: 0,
+                correctVal: 0,
+                wrongVal: 0,
+                totalAttempted: 0,
+                totalCorrect: 0,
+                answered: false
+            },
+            // Store scenarios state
+            scenariosCompleted: [false, false, false],
+            activeScenarioIdx: 0,
+            selectedBudgetAnswer: null
+        };
+
+        // Scenarios Data
+        const scenarios = [
+            {
+                title: "Өдрийн хүнс цуглуулах",
+                desc: "Ээждээ тусалж хүнсний дэлгүүрээс дараах барааг авахаар болов.",
+                budget: 20000,
+                items: [
+                    { name: "Үхрийн мах (1кг)", exactPrice: 14800, icon: "fa-drumstick-bite" },
+                    { name: "Талх", exactPrice: 1800, icon: "fa-bread-slice" },
+                    { name: "Сүү (1л)", exactPrice: 3200, icon: "fa-bottle-water" },
+                    { name: "Өндөг (10 ш)", exactPrice: 4600, icon: "fa-egg" }
+                ]
+            },
+            {
+                title: "Сургуулийн хэрэгсэл авах",
+                desc: "Шинэ хичээлийн жилд шаардлагатай хичээлийн хэрэгслүүдийг аваарай.",
+                budget: 15000,
+                items: [
+                    { name: "Дэвтэр цуглуулга", exactPrice: 5400, icon: "fa-book" },
+                    { name: "Үзэг, харандааны гэр", exactPrice: 4200, icon: "fa-pen-ruler" },
+                    { name: "Усан будгийн иж бүрдэл", exactPrice: 3800, icon: "fa-palette" }
+                ]
+            },
+            {
+                title: "Гэр бүлийн амралт & Хоол",
+                desc: "Парк дээр амрах зуушаа бэлдэх тооцоог хийгээрэй.",
+                budget: 30000,
+                items: [
+                    { name: "Шүүс & Ундаа", exactPrice: 6200, icon: "fa-glass-water" },
+                    { name: "Пицца", exactPrice: 18500, icon: "fa-pizza-slice" },
+                    { name: "Амттан & Жимс", exactPrice: 7100, icon: "fa-apple-whole" }
+                ]
+            }
+        ];
+
+        // Badges definition
+        const badgesDef = [
+            { id: "b1", title: "Эхлэлийн Тэмдэг", desc: "Анхны дасгалаа зөв хариуллаа", icon: "fa-seedling", color: "emerald", req: s => s.correctCount >= 1 },
+            { id: "b2", title: "Мянгатын Мастер", desc: "10 тоог зөв тоймлолоо", icon: "fa-graduation-cap", color: "indigo", req: s => s.correctCount >= 10 },
+            { id: "b3", title: "Ухаалаг Худалдан Авагч", desc: "Дэлгүүрийн 1 даалгаврыг биелүүллээ", icon: "fa-cart-check", color: "amber", req: s => s.scenariosCompleted.filter(Boolean).length >= 1 },
+            { id: "b4", title: "Санхүүч Хүү", desc: "Дэлгүүрийн бүх 3 даалгаврыг гүйцэтгэлээ", icon: "fa-coins", color: "purple", req: s => s.scenariosCompleted.filter(Boolean).length === 3 },
+            { id: "b5", title: "Цувралын Хаан", desc: "5 удаа дараалж зөв хариуллаа", icon: "fa-fire-flame-curved", color: "orange", req: s => s.maxStreak >= 5 }
+        ];
+
+        /* Sound Effects using Web Audio API */
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!state.soundEnabled) return;
+            try {
+                initAudio();
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
+                    osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2); // G5
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'wrong') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(220, now); // A3
+                    osc.frequency.exponentialRampToValueAtTime(164.81, now + 0.2); // E3
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'fanfare') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.value = freq;
+                        g.gain.setValueAtTime(0.15, now + idx * 0.1);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.3);
+                        o.start(now + idx * 0.1);
+                        o.stop(now + idx * 0.1 + 0.3);
+                    });
+                }
+            } catch(e) { console.log(e); }
+        }
+
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            if (state.soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark';
+            }
+        }
+
+        /* Rounding Helper Logic */
+        function roundToNearestThousand(val) {
+            return Math.round(val / 1000) * 1000;
+        }
+
+        /* TAB NAVIGATION */
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-indigo-700', 'shadow-md');
+                btn.classList.add('hover:bg-indigo-600/60');
+            });
+
+            document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            activeBtn.classList.add('bg-white', 'text-indigo-700', 'shadow-md');
+            activeBtn.classList.remove('hover:bg-indigo-600/60');
+
+            if (tabId === 'practice' && state.practice.currentNum === 0) {
+                generatePracticeQuestion();
+            } else if (tabId === 'achievements') {
+                renderAchievements();
+            }
+        }
+
+        /* MODULE 1: NUMBER LINE SIMULATION LOGIC */
+        const slider = document.getElementById('learnSlider');
+        slider.addEventListener('input', (e) => {
+            updateNumberLineDisplay(parseInt(e.target.value));
+        });
+
+        function setCustomNumber() {
+            const input = document.getElementById('customNumInput');
+            let val = parseInt(input.value);
+            if (isNaN(val)) val = 3420;
+            if (val < 1000) val = 1000;
+            if (val > 9999) val = 9999;
+            input.value = val;
+
+            // Adjust slider range dynamically to bracket this number
+            const lowerBound = Math.floor(val / 1000) * 1000;
+            const upperBound = lowerBound + 1000;
+            slider.min = lowerBound;
+            slider.max = upperBound;
+            slider.value = val;
+
+            updateNumberLineDisplay(val);
+        }
+
+        function updateNumberLineDisplay(val) {
+            const lower = Math.floor(val / 1000) * 1000;
+            const upper = lower + 1000;
+            const mid = lower + 500;
+
+            document.getElementById('lowerThousandLabel').textContent = lower.toLocaleString('mn-MN');
+            document.getElementById('upperThousandLabel').textContent = upper.toLocaleString('mn-MN');
+            document.getElementById('midThousandLabel').textContent = mid.toLocaleString('mn-MN');
+
+            // Formatted text with red highlighted hundreds digit
+            const strVal = val.toString();
+            const hundredsDigit = Math.floor((val % 1000) / 100);
+            
+            let formattedHTML = '';
+            if (strVal.length === 4) {
+                formattedHTML = `${strVal[0]},<span class="text-red-400 font-black">${strVal[1]}</span>${strVal[2]}${strVal[3]}`;
+            } else {
+                formattedHTML = val.toLocaleString('mn-MN');
+            }
+            document.getElementById('demoNumberDisplay').innerHTML = formattedHTML;
+
+            // Ball Position Percentage
+            const pct = ((val - lower) / (upper - lower)) * 100;
+            const ball = document.getElementById('ballIndicator');
+            ball.style.left = `${pct}%`;
+
+            // Explanation
+            const rounded = roundToNearestThousand(val);
+            const expBox = document.getElementById('demoExplanation');
+            
+            if (hundredsDigit >= 5) {
+                expBox.innerHTML = `Зуутын орон нь <span class="text-amber-400 font-bold">${hundredsDigit}</span> (≥5) тул <b>ИХ</b> мянгат <b>${upper.toLocaleString('mn-MN')}</b> руу тоймлогдоно.`;
+            } else {
+                expBox.innerHTML = `Зуутын орон нь <span class="text-emerald-300 font-bold">${hundredsDigit}</span> (<5) тул <b>БАГА</b> мянгат <b>${lower.toLocaleString('mn-MN')}</b> руу тоймлогдоно.`;
+            }
+        }
+
+        /* MODULE 2: PRACTICE GAME LOGIC */
+        function generatePracticeQuestion() {
+            state.practice.answered = false;
+            document.getElementById('nextQuestionBtn').classList.add('hidden');
+            document.getElementById('practiceFeedback').className = 'min-h-[50px] flex items-center justify-center font-bold text-lg rounded-2xl p-2 transition';
+            document.getElementById('practiceFeedback').innerHTML = '';
+
+            // Generate a random 4-digit number (e.g., 1100 to 9890, non-zero hundreds for clear practice)
+            let num = Math.floor(Math.random() * 8800) + 1100;
+            // avoid exact thousands
+            if (num % 1000 === 0) num += 350;
+            
+            state.practice.currentNum = num;
+            const correctVal = roundToNearestThousand(num);
+            const lowerThousand = Math.floor(num / 1000) * 1000;
+            const upperThousand = lowerThousand + 1000;
+
+            state.practice.correctVal = correctVal;
+
+            // Highlight question number with formatted hundreds digit
+            const strVal = num.toString();
+            const qNumEl = document.getElementById('questionNumber');
+            qNumEl.innerHTML = `${strVal[0]},<span class="digit-highlight">${strVal[1]}</span>${strVal[2]}${strVal[3]}`;
+
+            // Render options
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+
+            const options = [lowerThousand, upperThousand];
+            
+            options.forEach(optVal => {
+                const btn = document.createElement('button');
+                btn.className = 'bg-white hover:bg-indigo-50 border-2 border-indigo-300 text-indigo-900 font-extrabold text-2xl py-4 rounded-2xl shadow-md bouncy transition flex flex-col items-center justify-center';
+                btn.innerHTML = `<span>${optVal.toLocaleString('mn-MN')}</span>`;
+                btn.onclick = () => answerPractice(optVal, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function answerPractice(chosenVal, btnEl) {
+            if (state.practice.answered) return;
+            state.practice.answered = true;
+            state.practice.totalAttempted++;
+
+            const feedback = document.getElementById('practiceFeedback');
+            const isCorrect = chosenVal === state.practice.correctVal;
+
+            if (isCorrect) {
+                playSound('correct');
+                btnEl.classList.remove('bg-white', 'border-indigo-300');
+                btnEl.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
+                
+                feedback.className = 'min-h-[50px] bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-2xl p-3 text-center font-bold';
+                feedback.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i> Мялаалга! Маш зөв тоймлолоо! (+10 Од)';
+
+                state.stars += 10;
+                state.streak++;
+                state.correctCount++;
+                state.practice.totalCorrect++;
+                if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+
+            } else {
+                playSound('wrong');
+                btnEl.classList.remove('bg-white', 'border-indigo-300');
+                btnEl.classList.add('bg-red-500', 'text-white', 'border-red-600');
+
+                feedback.className = 'min-h-[50px] bg-red-100 text-red-800 border border-red-300 rounded-2xl p-3 text-center font-bold';
+                feedback.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-600 mr-2"></i> Дахин бодоорой! Зөв хариу нь <b>${state.practice.correctVal.toLocaleString('mn-MN')}</b> байлаа.`;
+
+                state.streak = 0;
+            }
+
+            updateGlobalStats();
+            document.getElementById('nextQuestionBtn').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            generatePracticeQuestion();
+        }
+
+        /* MODULE 3: STORE & HOUSEHOLD SCENARIOS */
+        function loadScenario(idx) {
+            state.activeScenarioIdx = idx;
+            state.selectedBudgetAnswer = null;
+
+            // Update Tab buttons styling
+            document.querySelectorAll('.scen-tab').forEach((b, i) => {
+                if (i === idx) {
+                    b.className = 'scen-tab px-3 py-1.5 text-xs font-bold rounded-xl bg-indigo-600 text-white shadow';
+                } else {
+                    b.className = 'scen-tab px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-200 text-slate-700 hover:bg-slate-300';
+                }
+            });
+
+            const scen = scenarios[idx];
+            document.getElementById('scenTitle').textContent = scen.title;
+            document.getElementById('scenDesc').textContent = scen.desc;
+            document.getElementById('scenBudget').textContent = `${scen.budget.toLocaleString('mn-MN')}₮`;
+
+            // Render Items
+            const container = document.getElementById('storeItemsContainer');
+            container.innerHTML = '';
+
+            let exactSum = 0;
+            scen.items.forEach((item, itemIdx) => {
+                exactSum += item.exactPrice;
+                const roundedPrice = roundToNearestThousand(item.exactPrice);
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'bg-white border-2 border-slate-200 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-sm hover:border-indigo-300 transition';
+                
+                itemDiv.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-lg font-bold shrink-0">
+                            <i class="fa-solid ${item.icon}"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm md:text-base">${item.name}</div>
+                            <div class="text-xs text-slate-500">Бодит үнэ: <span class="font-semibold text-slate-700">${item.exactPrice.toLocaleString('mn-MN')}₮</span></div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2 w-full md:w-auto justify-end">
+                        <label class="text-xs font-bold text-slate-500">Тоймлосон үнэ:</label>
+                        <select id="scenInput-${itemIdx}" onchange="recalculateStoreTotals()" 
+                                class="bg-indigo-50 border-2 border-indigo-200 text-indigo-900 font-bold text-sm px-3 py-1.5 rounded-xl focus:outline-none focus:border-indigo-600">
+                            <option value="">-- Сонгох --</option>
+                            <option value="${Math.floor(item.exactPrice/1000)*1000}">${(Math.floor(item.exactPrice/1000)*1000).toLocaleString('mn-MN')}₮</option>
+                            <option value="${(Math.floor(item.exactPrice/1000)*1000) + 1000}">${((Math.floor(item.exactPrice/1000)*1000) + 1000).toLocaleString('mn-MN')}₮</option>
+                        </select>
+                    </div>
+                `;
+                container.appendChild(itemDiv);
+            });
+
+            document.getElementById('calcExactSum').textContent = `${exactSum.toLocaleString('mn-MN')}₮`;
+            document.getElementById('calcRoundedSum').textContent = '0₮';
+            
+            // Reset Budget buttons
+            document.getElementById('btnBudgetYes').className = 'py-2 rounded-xl font-bold border-2 border-emerald-500 text-emerald-700 hover:bg-emerald-50 transition text-sm';
+            document.getElementById('btnBudgetNo').className = 'py-2 rounded-xl font-bold border-2 border-red-400 text-red-700 hover:bg-red-50 transition text-sm';
+
+            document.getElementById('differenceNote').className = 'text-xs p-2.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200';
+            document.getElementById('differenceNote').innerHTML = '<i class="fa-solid fa-circle-info mr-1"></i> Бараа тус бүрийн тоймлосон дүнг сонгож бодоорой.';
+        }
+
+        function recalculateStoreTotals() {
+            const scen = scenarios[state.activeScenarioIdx];
+            let roundedSum = 0;
+            let allFilled = true;
+
+            scen.items.forEach((item, itemIdx) => {
+                const sel = document.getElementById(`scenInput-${itemIdx}`);
+                if (sel && sel.value !== "") {
+                    roundedSum += parseInt(sel.value);
+                } else {
+                    allFilled = false;
+                }
+            });
+
+            document.getElementById('calcRoundedSum').textContent = `${roundedSum.toLocaleString('mn-MN')}₮`;
+        }
+
+        function selectBudgetAnswer(ans) {
+            state.selectedBudgetAnswer = ans;
+            const yesBtn = document.getElementById('btnBudgetYes');
+            const noBtn = document.getElementById('btnBudgetNo');
+
+            if (ans) {
+                yesBtn.className = 'py-2 rounded-xl font-bold bg-emerald-500 text-white border-2 border-emerald-600 text-sm shadow';
+                noBtn.className = 'py-2 rounded-xl font-bold border-2 border-red-400 text-red-700 hover:bg-red-50 transition text-sm';
+            } else {
+                noBtn.className = 'py-2 rounded-xl font-bold bg-red-500 text-white border-2 border-red-600 text-sm shadow';
+                yesBtn.className = 'py-2 rounded-xl font-bold border-2 border-emerald-500 text-emerald-700 hover:bg-emerald-50 transition text-sm';
+            }
+        }
+
+        function checkStoreScenario() {
+            const scen = scenarios[state.activeScenarioIdx];
+            let itemsCorrect = true;
+
+            scen.items.forEach((item, itemIdx) => {
+                const sel = document.getElementById(`scenInput-${itemIdx}`);
+                const expected = roundToNearestThousand(item.exactPrice);
+                if (!sel || parseInt(sel.value) !== expected) {
+                    itemsCorrect = false;
+                }
+            });
+
+            const diffNote = document.getElementById('differenceNote');
+
+            if (!itemsCorrect) {
+                playSound('wrong');
+                diffNote.className = 'text-xs p-2.5 rounded-xl bg-red-100 text-red-800 border border-red-300 font-bold';
+                diffNote.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> Зарим барааны тоймлосон дүн буруу байна. Зуутын орноо дахин ажиглаарай!';
+                return;
+            }
+
+            if (state.selectedBudgetAnswer === null) {
+                playSound('wrong');
+                diffNote.className = 'text-xs p-2.5 rounded-xl bg-amber-100 text-amber-800 border border-amber-300 font-bold';
+                diffNote.innerHTML = '<i class="fa-solid fa-hand mr-1"></i> Төсөв хүрэлцэх эсэх "Хүрнэ" эсвэл "Хүрэхгүй" товчийг сонгоно уу!';
+                return;
+            }
+
+            // Check if budget check is accurate based on rounded sum
+            let totalRounded = scen.items.reduce((acc, i) => acc + roundToNearestThousand(i.exactPrice), 0);
+            let budgetIsSufficient = totalRounded <= scen.budget;
+
+            if (state.selectedBudgetAnswer === budgetIsSufficient) {
+                playSound('fanfare');
+                triggerConfetti();
+                
+                diffNote.className = 'text-xs p-2.5 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold';
+                diffNote.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Байж боломгүй мундаг! Ойролцоо нийт дүн <b>${totalRounded.toLocaleString('mn-MN')}₮</b> болон төсвийн шийдвэр тун зөв гарлаа! (+30 Од)`;
+
+                if (!state.scenariosCompleted[state.activeScenarioIdx]) {
+                    state.scenariosCompleted[state.activeScenarioIdx] = true;
+                    state.stars += 30;
+                    updateGlobalStats();
+                }
+            } else {
+                playSound('wrong');
+                diffNote.className = 'text-xs p-2.5 rounded-xl bg-red-100 text-red-800 border border-red-300 font-bold';
+                diffNote.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-600 mr-1"></i> Ойролцоо дүн <b>${totalRounded.toLocaleString('mn-MN')}₮</b> бөгөөд төсөв нь <b>${scen.budget.toLocaleString('mn-MN')}₮</b> тул хариултаа дахин нягтлаарай!`;
+            }
+        }
+
+        /* UPDATE GLOBAL STATS UI */
+        function updateGlobalStats() {
+            document.getElementById('globalStars').textContent = state.stars;
+            document.getElementById('streakCount').textContent = state.streak;
+            document.getElementById('practiceScore').textContent = `${state.practice.totalCorrect} / ${state.practice.totalAttempted}`;
+        }
+
+        /* RENDER ACHIEVEMENTS PAGE */
+        function renderAchievements() {
+            document.getElementById('statStars').textContent = state.stars;
+            document.getElementById('statCorrect').textContent = state.correctCount;
+            document.getElementById('statStreak').textContent = state.maxStreak;
+            
+            const completedScenCount = state.scenariosCompleted.filter(Boolean).length;
+            document.getElementById('statMissions').textContent = `${completedScenCount} / 3`;
+
+            const container = document.getElementById('badgesContainer');
+            container.innerHTML = '';
+
+            badgesDef.forEach(b => {
+                const unlocked = b.req(state);
+                const badgeCard = document.createElement('div');
+                
+                if (unlocked) {
+                    badgeCard.className = 'bg-white border-2 border-amber-300 rounded-2xl p-4 flex items-center space-x-3 shadow-md relative overflow-hidden';
+                    badgeCard.innerHTML = `
+                        <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl font-black shrink-0">
+                            <i class="fa-solid ${b.icon}"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-extrabold text-slate-800 text-sm">${b.title}</div>
+                            <div class="text-xs text-slate-500 mt-0.5">${b.desc}</div>
+                            <span class="inline-block mt-1 text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Авсан <i class="fa-solid fa-check"></i></span>
+                        </div>
+                    `;
+                } else {
+                    badgeCard.className = 'bg-slate-100 border-2 border-slate-200 rounded-2xl p-4 flex items-center space-x-3 opacity-60 grayscale';
+                    badgeCard.innerHTML = `
+                        <div class="w-12 h-12 rounded-2xl bg-slate-200 text-slate-500 flex items-center justify-center text-2xl font-black shrink-0">
+                            <i class="fa-solid ${b.icon}"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-bold text-slate-700 text-sm">${b.title}</div>
+                            <div class="text-xs text-slate-500 mt-0.5">${b.desc}</div>
+                            <span class="inline-block mt-1 text-[10px] bg-slate-200 text-slate-600 font-bold px-2 py-0.5 rounded-full">Түгжээтэй</span>
+                        </div>
+                    `;
+                }
+                container.appendChild(badgeCard);
+            });
+        }
+
+        function resetAllProgress() {
+            if (confirm("Бүх амжилт, оноогоо шинэчлэх үү?")) {
+                state.stars = 0;
+                state.streak = 0;
+                state.maxStreak = 0;
+                state.correctCount = 0;
+                state.practice.totalAttempted = 0;
+                state.practice.totalCorrect = 0;
+                state.scenariosCompleted = [false, false, false];
+                updateGlobalStats();
+                renderAchievements();
+            }
+        }
+
+        /* CONFETTI ANIMATION SYSTEM */
+        function triggerConfetti() {
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#f59e0b', '#10b981', '#6366f1', '#ec4899', '#3b82f6'];
+
+            for (let i = 0; i < 80; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: (Math.random() - 0.7) * 12,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    life: 100
+                });
+            }
+
+            let animId;
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let alive = false;
+
+                particles.forEach(p => {
+                    if (p.life > 0) {
+                        alive = true;
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.25; // gravity
+                        p.life--;
+
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+
+                if (alive) {
+                    animId = requestAnimationFrame(render);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    cancelAnimationFrame(animId);
+                }
+            }
+            render();
+        }
+
+        /* INITIALIZATION ON WINDOW LOAD */
+        window.onload = function() {
+            setCustomNumber();
+            loadScenario(0);
+            updateGlobalStats();
+        };
+    </script>
+</body>
+</html>
